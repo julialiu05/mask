@@ -2053,11 +2053,14 @@ RULES:
         127, 162, 21, 54, 103, 67, 109, 10];
 
       const faceCx = (leftCheek.x + rightCheek.x) / 2;
-      const faceCy = (forehead.y + chin.y) / 2;
+      const noseBridge = lm(6); // nose bridge between eyes
+      const eyeMid = { x: (leftEye.x + rightEye.x) / 2, y: (leftEye.y + rightEye.y) / 2 };
+      // Anchor to nose bridge area instead of geometric center -- masks have eyes near top
+      const faceCy = noseBridge.y;
       const rawFaceW = dist(234, 454);
       const rawFaceH = dist(10, 152);
-      const faceWidth = rawFaceW * 1.4 * aiMaskScale;
-      const faceHeight = rawFaceH * 1.25 * aiMaskScale;
+      const faceWidth = rawFaceW * 1.5 * aiMaskScale;
+      const faceHeight = rawFaceH * 1.4 * aiMaskScale;
       const angle = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x);
 
       // Apply face-relative offset
@@ -2068,14 +2071,14 @@ RULES:
 
       c.save();
 
-      // Clip to face oval shape (with some padding)
+      // Clip to face oval shape (with generous padding)
+      const clipCy = (forehead.y + chin.y) / 2; // use true face center for clipping
       c.beginPath();
-      const pad = 1.15; // slight padding beyond face edge
+      const pad = 1.25; // generous padding so mask isn't clipped too tight
       faceOvalIndices.forEach((idx, i) => {
         const p = lm(idx);
-        // Scale outward from face center for padding
         const px = faceCx + (p.x - faceCx) * pad;
-        const py = faceCy + (p.y - faceCy) * pad;
+        const py = clipCy + (p.y - clipCy) * pad;
         if (i === 0) c.moveTo(px, py);
         else c.lineTo(px, py);
       });
