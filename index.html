@@ -819,6 +819,13 @@
   <script src="config.js" onerror="window.MASK_CONFIG={}"></script>
 
   <script>
+    // Global error handler -- show errors on screen for debugging
+    window.onerror = function(msg, src, line, col, err) {
+      const s = document.getElementById('status');
+      if (s) s.textContent = 'JS Error: ' + msg + ' (line ' + line + ')';
+      console.error('Global error:', msg, src, line, col, err);
+    };
+
     // ==================== i18n ====================
     let currentLang = 'en';
     const i18n = {
