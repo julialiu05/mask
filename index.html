@@ -1112,22 +1112,25 @@
       }
 
       try {
-        const response = await fetch('https://api.openai.com/v1/images/generations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${key}`
-          },
-          body: JSON.stringify({
-            model: 'dall-e-3',
-            prompt: maskPrompt,
-            n: 1,
-            size: '1024x1024',
-            response_format: 'b64_json'
-          })
-        });
+        const reqBody = { model: 'dall-e-3', prompt: maskPrompt, n: 1, size: '1024x1024', response_format: 'b64_json' };
+        let data;
 
-        const data = await response.json();
+        // Use proxy on deployed site, direct call locally
+        if (window.location.hostname !== 'localhost' && !window.location.protocol.startsWith('file')) {
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: 'openai', body: reqBody })
+          });
+          data = await response.json();
+        } else {
+          const response = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+            body: JSON.stringify(reqBody)
+          });
+          data = await response.json();
+        }
 
         if (data.error) {
           throw new Error(data.error.message);
@@ -1252,43 +1255,66 @@ RULES:
         ? `${prompt}, immersive background scene, virtual background, no people, no text, cinematic, detailed, 4:3 aspect ratio`
         : `${prompt}, face mask overlay, transparent background, PNG, centered on face, no background, isolated on black background, high detail, front facing`;
 
+      const useProxy = window.location.hostname !== 'localhost' && !window.location.protocol.startsWith('file');
+
       try {
         // Submit request
-        const submitRes = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Key ${key}`
-          },
-          body: JSON.stringify({
-            prompt: maskPrompt,
-            image_size: { width: 512, height: 512 },
-            num_images: 1,
-            enable_safety_checker: false
-          })
-        });
+        let submitData;
+        const falBody = { prompt: maskPrompt, image_size: { width: 512, height: 512 }, num_images: 1, enable_safety_checker: false };
 
-        const submitData = await submitRes.json();
+        if (useProxy) {
+          const submitRes = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: 'fal', body: falBody })
+          });
+          submitData = await submitRes.json();
+        } else {
+          const submitRes = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Key ${key}` },
+            body: JSON.stringify(falBody)
+          });
+          submitData = await submitRes.json();
+        }
 
         // Check if we got a direct response or need to poll
         let imageUrl;
         if (submitData.images && submitData.images.length > 0) {
           imageUrl = submitData.images[0].url;
         } else if (submitData.request_id) {
-          // Poll for result
           const reqId = submitData.request_id;
           let result = null;
           for (let i = 0; i < 60; i++) {
             await new Promise(r => setTimeout(r, 1000));
-            const statusRes = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${reqId}/status`, {
-              headers: { 'Authorization': `Key ${key}` }
-            });
-            const statusData = await statusRes.json();
-            if (statusData.status === 'COMPLETED') {
-              const resultRes = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${reqId}`, {
+            let statusData;
+            if (useProxy) {
+              const statusRes = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider: 'fal-status', body: { requestId: reqId } })
+              });
+              statusData = await statusRes.json();
+            } else {
+              const statusRes = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${reqId}/status`, {
                 headers: { 'Authorization': `Key ${key}` }
               });
-              result = await resultRes.json();
+              statusData = await statusRes.json();
+            }
+            if (statusData.status === 'COMPLETED') {
+              if (useProxy) {
+                const resultRes = await fetch('/api/generate', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ provider: 'fal-result', body: { requestId: reqId } })
+                });
+                result = await resultRes.json();
+              } else {
+                const resultRes = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${reqId}`, {
+                  headers: { 'Authorization': `Key ${key}` }
+                });
+                result = await resultRes.json();
+              }
               break;
             } else if (statusData.status === 'FAILED') {
               throw new Error('FAL generation failed');
