@@ -47,8 +47,13 @@
       transform: scaleX(-1);
     }
 
+    #bgCanvas { z-index: 0; }
     #canvas { z-index: 1; }
     #drawCanvas { z-index: 2; }
+
+    /* When bg mode is active, hide the raw video and composite onto canvas */
+    body.bg-mode video { opacity: 0; }
+    body.bg-mode #bgCanvas { display: block; }
 
     /* ---- Status overlay ---- */
     .status {
@@ -319,12 +324,212 @@
     .coverage-tag:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.7); }
     .coverage-tag.active { border-color: #1a1a1a; color: #1a1a1a; background: rgba(0,0,0,0.05); }
 
+    .type-tag {
+      padding: 4px 10px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 20px;
+      background: none;
+      color: rgba(0,0,0,0.45);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .type-tag:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.7); }
+    .type-tag.active { border-color: #1a1a1a; color: #1a1a1a; background: rgba(0,0,0,0.05); }
+
     .divider {
       height: 1px;
       background: rgba(0,0,0,0.07);
     }
 
     label { font-size: 11px; color: rgba(0,0,0,0.4); }
+
+    /* ---- Prompt Builder ---- */
+    .builder-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .builder-toggle .panel-label { cursor: pointer; }
+    .builder-chevron {
+      width: 12px; height: 12px;
+      stroke: rgba(0,0,0,0.3);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.2s;
+    }
+    .builder-toggle.open .builder-chevron { transform: rotate(180deg); }
+
+    .builder-body {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .builder-toggle.open + .builder-body { display: flex; }
+
+    .builder-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .builder-row-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.35);
+      font-weight: 600;
+    }
+    .builder-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .builder-chip {
+      padding: 3px 8px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 14px;
+      background: none;
+      color: rgba(0,0,0,0.45);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .builder-chip:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.7); }
+    .builder-chip.selected { border-color: #1a1a1a; color: #1a1a1a; background: rgba(0,0,0,0.05); }
+
+    .builder-custom {
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.02);
+      color: #1a1a1a;
+      font-size: 10px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .builder-custom:focus { border-color: rgba(0,0,0,0.3); }
+    .builder-custom::placeholder { color: rgba(0,0,0,0.25); }
+
+    .builder-preview {
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.03);
+      border: 1px dashed rgba(0,0,0,0.1);
+      font-size: 10px;
+      color: rgba(0,0,0,0.5);
+      min-height: 20px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .builder-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .builder-use-btn {
+      flex: 1;
+      padding: 6px 0;
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .builder-use-btn:hover { background: #333; border-color: #333; }
+    .builder-clear-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 8px;
+      background: none;
+      color: rgba(0,0,0,0.4);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .builder-clear-btn:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.7); }
+
+    /* ---- Prompt slot ---- */
+    .prompt-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.02);
+      cursor: pointer;
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+    .prompt-slot:hover { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.04); }
+    .prompt-slot:active { transform: scale(0.98); }
+
+    .slot-icon {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .slot-icon.spin { transform: rotate(360deg); }
+
+    .slot-text {
+      font-size: 11px;
+      color: rgba(0,0,0,0.55);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .slot-use-btn {
+      flex-shrink: 0;
+      padding: 3px 8px;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 12px;
+      background: #fff;
+      color: rgba(0,0,0,0.5);
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .slot-use-btn:hover { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+    /* ---- Language toggle ---- */
+    .lang-toggle {
+      display: flex;
+      align-self: flex-end;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 20px;
+      overflow: hidden;
+      font-size: 10px;
+      margin-bottom: -10px;
+    }
+    .lang-btn {
+      padding: 4px 10px;
+      border: none;
+      background: none;
+      color: rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 10px;
+    }
+    .lang-btn:hover { color: rgba(0,0,0,0.7); }
+    .lang-btn.active { background: #1a1a1a; color: #fff; }
 
     /* Hide old elements */
     .toolbar, .controls, .ai-section { display: none !important; }
@@ -335,24 +540,31 @@
     <!-- Camera -->
     <div class="camera-side">
       <div class="container">
+        <canvas id="bgCanvas" width="640" height="480"></canvas>
         <video id="video" autoplay playsinline></video>
         <canvas id="canvas" width="640" height="480"></canvas>
         <canvas id="drawCanvas" width="640" height="480"></canvas>
       </div>
-      <div class="status" id="status">Starting camera...</div>
+      <div class="status" id="status" data-i18n="statusStarting">Starting camera...</div>
     </div>
 
     <!-- Panel -->
     <div class="panel">
+      <!-- Language toggle -->
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="zh">中文</button>
+      </div>
+
       <!-- Mode tabs -->
       <div class="mode-tabs">
         <button class="mode-tab" id="tabDraw" title="Draw">
           <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Draw
+          <span data-i18n="draw">Draw</span>
         </button>
         <button class="mode-tab active" id="tabAI" title="AI Generate">
           <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4c0 1.95-2 3-2 8h-4c0-5-2-6.05-2-8a4 4 0 014-4zM10 22h4M10 18h4"/></svg>
-          Generate
+          <span data-i18n="generate">Generate</span>
         </button>
       </div>
 
@@ -371,7 +583,7 @@
       <!-- ========== DRAW MODE ========== -->
       <div class="mode-content" id="drawMode" style="display:none;">
         <div class="panel-section">
-          <div class="panel-label">Brush</div>
+          <div class="panel-label" data-i18n="brush">Brush</div>
           <div class="btn-row">
             <button class="small-btn active" data-tool="brush" title="Brush">
               <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -392,7 +604,7 @@
         </div>
 
         <div class="panel-section">
-          <div class="panel-label">Color</div>
+          <div class="panel-label" data-i18n="color">Color</div>
           <div class="btn-row" style="gap:5px;">
             <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff; border-color:#ddd;"></div>
             <div class="color-swatch" data-color="#ff3366" style="background:#ff3366"></div>
@@ -408,7 +620,7 @@
         </div>
 
         <div class="panel-section">
-          <div class="panel-label">Size</div>
+          <div class="panel-label" data-i18n="size">Size</div>
           <input type="range" class="size-slider" id="brushSize" min="2" max="40" value="8">
         </div>
       </div>
@@ -416,7 +628,7 @@
       <!-- ========== AI MODE ========== -->
       <div class="mode-content" id="aiMode">
         <div class="panel-section">
-          <div class="panel-label">Model</div>
+          <div class="panel-label" data-i18n="model">Model</div>
           <select id="aiModel" class="model-select">
             <option value="openai" selected>DALL-E 3 (OpenAI)</option>
             <option value="claude">Claude (SVG)</option>
@@ -425,36 +637,161 @@
         </div>
 
         <div class="panel-section">
-          <div class="panel-label">Style</div>
-          <div class="btn-row" style="gap:5px; flex-wrap:wrap;">
-            <button class="style-tag" data-style="realistic, photographic">realistic</button>
-            <button class="style-tag" data-style="flat illustration, vector art">illustration</button>
-            <button class="style-tag" data-style="neon glow, luminescent, black light">neon</button>
-            <button class="style-tag" data-style="watercolor painted, soft edges, bleed">watercolor</button>
-            <button class="style-tag" data-style="tribal, geometric, bold lines">tribal</button>
-            <button class="style-tag" data-style="cute kawaii, soft pastel, rounded">kawaii</button>
-            <button class="style-tag" data-style="cyberpunk, futuristic, holographic, chrome">cyber</button>
-            <button class="style-tag" data-style="minimal lineart, single weight stroke">minimal</button>
-            <button class="style-tag" data-style="gold leaf, ornate, baroque, metallic">gold</button>
-            <button class="style-tag" data-style="horror, dark, dripping, distressed">horror</button>
-            <button class="style-tag" data-style="y2k, chrome, bubbly, iridescent">y2k</button>
-            <button class="style-tag" data-style="glitter, sparkle, gems, rhinestone">glam</button>
+          <div class="panel-label" data-i18n="type">Type</div>
+          <div class="btn-row" style="gap:5px;">
+            <button class="type-tag active" data-type="mask" data-i18n="t_mask">Mask</button>
+            <button class="type-tag" data-type="background" data-i18n="t_background">Background</button>
           </div>
         </div>
 
         <div class="panel-section">
-          <div class="panel-label">Coverage</div>
+          <div class="panel-label" data-i18n="style">Style</div>
           <div class="btn-row" style="gap:5px; flex-wrap:wrap;">
-            <button class="coverage-tag active" data-coverage="full face">full face</button>
-            <button class="coverage-tag" data-coverage="eyes only, eye area">eyes only</button>
-            <button class="coverage-tag" data-coverage="half face, upper half">half face</button>
-            <button class="coverage-tag" data-coverage="forehead and above, crown">crown</button>
-            <button class="coverage-tag" data-coverage="lower face, mouth and jaw">lower face</button>
+            <button class="style-tag" data-style="realistic, photographic" data-i18n="s_realistic">realistic</button>
+            <button class="style-tag" data-style="flat illustration, vector art" data-i18n="s_illustration">illustration</button>
+            <button class="style-tag" data-style="neon glow, luminescent, black light" data-i18n="s_neon">neon</button>
+            <button class="style-tag" data-style="watercolor painted, soft edges, bleed" data-i18n="s_watercolor">watercolor</button>
+            <button class="style-tag" data-style="tribal, geometric, bold lines" data-i18n="s_tribal">tribal</button>
+            <button class="style-tag" data-style="cute kawaii, soft pastel, rounded" data-i18n="s_kawaii">kawaii</button>
+            <button class="style-tag" data-style="cyberpunk, futuristic, holographic, chrome" data-i18n="s_cyber">cyber</button>
+            <button class="style-tag" data-style="minimal lineart, single weight stroke" data-i18n="s_minimal">minimal</button>
+            <button class="style-tag" data-style="gold leaf, ornate, baroque, metallic" data-i18n="s_gold">gold</button>
+            <button class="style-tag" data-style="horror, dark, dripping, distressed" data-i18n="s_horror">horror</button>
+            <button class="style-tag" data-style="y2k, chrome, bubbly, iridescent" data-i18n="s_y2k">y2k</button>
+            <button class="style-tag" data-style="glitter, sparkle, gems, rhinestone" data-i18n="s_glam">glam</button>
+            <button class="style-tag" data-style="Chinese opera, Peking opera, traditional Chinese, ornate painted" data-i18n="s_chinese">chinese</button>
           </div>
         </div>
 
         <div class="panel-section">
-          <div class="panel-label">Prompt</div>
+          <div class="panel-label" data-i18n="coverage">Coverage</div>
+          <div class="btn-row" style="gap:5px; flex-wrap:wrap;">
+            <button class="coverage-tag active" data-coverage="full face" data-i18n="c_fullFace">full face</button>
+            <button class="coverage-tag" data-coverage="eyes only, eye area" data-i18n="c_eyesOnly">eyes only</button>
+            <button class="coverage-tag" data-coverage="half face, upper half" data-i18n="c_halfFace">half face</button>
+            <button class="coverage-tag" data-coverage="forehead and above, crown" data-i18n="c_crown">crown</button>
+            <button class="coverage-tag" data-coverage="lower face, mouth and jaw" data-i18n="c_lowerFace">lower face</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-label" data-i18n="inspiration">Inspiration</div>
+          <div class="prompt-slot" id="promptSlot">
+            <span class="slot-icon">🎰</span>
+            <span class="slot-text" id="slotText">Click to roll a prompt idea...</span>
+            <button class="slot-use-btn" id="slotUseBtn" data-i18n="use">use</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="builder-toggle" id="builderToggle">
+            <div class="panel-label" data-i18n="promptBuilder">Prompt Builder</div>
+            <svg class="builder-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="builder-body" id="builderBody">
+            <!-- Subject -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_subject">Subject</div>
+              <div class="builder-chips" data-field="subject">
+                <button class="builder-chip" data-val="dragon">🐉 <span data-i18n="pb_dragon">dragon</span></button>
+                <button class="builder-chip" data-val="butterfly">🦋 <span data-i18n="pb_butterfly">butterfly</span></button>
+                <button class="builder-chip" data-val="skull">💀 <span data-i18n="pb_skull">skull</span></button>
+                <button class="builder-chip" data-val="flowers">🌸 <span data-i18n="pb_flowers">flowers</span></button>
+                <button class="builder-chip" data-val="phoenix">🔥 <span data-i18n="pb_phoenix">phoenix</span></button>
+                <button class="builder-chip" data-val="cat">🐱 <span data-i18n="pb_cat">cat</span></button>
+                <button class="builder-chip" data-val="galaxy">🌌 <span data-i18n="pb_galaxy">galaxy</span></button>
+                <button class="builder-chip" data-val="koi">🐟 <span data-i18n="pb_koi">koi fish</span></button>
+                <button class="builder-chip" data-val="mask">🎭 <span data-i18n="pb_mask">opera mask</span></button>
+                <button class="builder-chip" data-val="robot">🤖 <span data-i18n="pb_robot">robot</span></button>
+              </div>
+              <input class="builder-custom" data-field="subject" data-i18n-ph="pb_subjectPh" placeholder="or type your own subject...">
+            </div>
+            <!-- Material -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_material">Material / Texture</div>
+              <div class="builder-chips" data-field="material">
+                <button class="builder-chip" data-val="porcelain">🏺 <span data-i18n="pb_porcelain">porcelain</span></button>
+                <button class="builder-chip" data-val="gold leaf">✨ <span data-i18n="pb_gold">gold leaf</span></button>
+                <button class="builder-chip" data-val="crystal">💎 <span data-i18n="pb_crystal">crystal</span></button>
+                <button class="builder-chip" data-val="wood carved">🪵 <span data-i18n="pb_wood">wood carved</span></button>
+                <button class="builder-chip" data-val="liquid metal">🪩 <span data-i18n="pb_metal">liquid metal</span></button>
+                <button class="builder-chip" data-val="watercolor">🎨 <span data-i18n="pb_watercolor">watercolor</span></button>
+                <button class="builder-chip" data-val="stained glass">🪟 <span data-i18n="pb_glass">stained glass</span></button>
+                <button class="builder-chip" data-val="ice frost">❄️ <span data-i18n="pb_ice">ice / frost</span></button>
+              </div>
+            </div>
+            <!-- Colors -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_colors">Colors</div>
+              <div class="builder-chips" data-field="colors">
+                <button class="builder-chip" data-val="red and gold">🔴 <span data-i18n="pb_redGold">red & gold</span></button>
+                <button class="builder-chip" data-val="black and white">⚫ <span data-i18n="pb_bw">black & white</span></button>
+                <button class="builder-chip" data-val="pastel rainbow">🌈 <span data-i18n="pb_pastel">pastel rainbow</span></button>
+                <button class="builder-chip" data-val="neon cyan and pink">💜 <span data-i18n="pb_neon">neon cyan & pink</span></button>
+                <button class="builder-chip" data-val="emerald and jade">💚 <span data-i18n="pb_jade">emerald & jade</span></button>
+                <button class="builder-chip" data-val="sunset orange">🟠 <span data-i18n="pb_sunset">sunset orange</span></button>
+                <button class="builder-chip" data-val="iridescent holographic">🫧 <span data-i18n="pb_holo">holographic</span></button>
+              </div>
+            </div>
+            <!-- Mood -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_mood">Mood / Vibe</div>
+              <div class="builder-chips" data-field="mood">
+                <button class="builder-chip" data-val="elegant and regal">👑 <span data-i18n="pb_elegant">elegant</span></button>
+                <button class="builder-chip" data-val="dark and mysterious">🌑 <span data-i18n="pb_dark">dark</span></button>
+                <button class="builder-chip" data-val="cute and playful">🧸 <span data-i18n="pb_cute">cute</span></button>
+                <button class="builder-chip" data-val="futuristic and techy">🚀 <span data-i18n="pb_futuristic">futuristic</span></button>
+                <button class="builder-chip" data-val="ethereal and dreamy">🌙 <span data-i18n="pb_dreamy">dreamy</span></button>
+                <button class="builder-chip" data-val="fierce and powerful">⚡ <span data-i18n="pb_fierce">fierce</span></button>
+                <button class="builder-chip" data-val="serene and peaceful">🕊️ <span data-i18n="pb_serene">serene</span></button>
+              </div>
+            </div>
+            <!-- Lighting -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_lighting">Lighting</div>
+              <div class="builder-chips" data-field="lighting">
+                <button class="builder-chip" data-val="golden hour sunlight">🌅 <span data-i18n="pb_goldenHour">golden hour</span></button>
+                <button class="builder-chip" data-val="neon glow">💡 <span data-i18n="pb_neonGlow">neon glow</span></button>
+                <button class="builder-chip" data-val="soft diffused light">☁️ <span data-i18n="pb_softLight">soft diffused</span></button>
+                <button class="builder-chip" data-val="dramatic rim lighting">🔦 <span data-i18n="pb_rimLight">rim light</span></button>
+                <button class="builder-chip" data-val="moonlit, blue ambient">🌙 <span data-i18n="pb_moonlit">moonlit</span></button>
+                <button class="builder-chip" data-val="volumetric god rays">✨ <span data-i18n="pb_godRays">god rays</span></button>
+                <button class="builder-chip" data-val="chiaroscuro, high contrast shadows">🎭 <span data-i18n="pb_chiaroscuro">chiaroscuro</span></button>
+                <button class="builder-chip" data-val="bioluminescent glow">🪼 <span data-i18n="pb_biolum">bioluminescent</span></button>
+              </div>
+            </div>
+            <!-- Composition / Camera -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_composition">Composition</div>
+              <div class="builder-chips" data-field="composition">
+                <button class="builder-chip" data-val="extreme close-up macro">🔍 <span data-i18n="pb_closeup">close-up</span></button>
+                <button class="builder-chip" data-val="symmetrical centered">⚖️ <span data-i18n="pb_symmetrical">symmetrical</span></button>
+                <button class="builder-chip" data-val="85mm portrait lens, shallow depth of field">📷 <span data-i18n="pb_portrait">portrait lens</span></button>
+                <button class="builder-chip" data-val="wide angle panoramic">🌐 <span data-i18n="pb_wideAngle">wide angle</span></button>
+                <button class="builder-chip" data-val="birds-eye view from above">🦅 <span data-i18n="pb_birdsEye">bird's eye</span></button>
+                <button class="builder-chip" data-val="tilt-shift miniature effect">🏠 <span data-i18n="pb_tiltShift">tilt-shift</span></button>
+                <button class="builder-chip" data-val="cinematic widescreen, film grain">🎬 <span data-i18n="pb_cinematic">cinematic</span></button>
+              </div>
+            </div>
+            <!-- Extra detail -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_extra">Extra Detail</div>
+              <input class="builder-custom" data-field="extra" data-i18n-ph="pb_extraPh" placeholder="glowing edges, dripping paint, tiny stars...">
+            </div>
+            <!-- Preview + actions -->
+            <div class="builder-row">
+              <div class="builder-row-label" data-i18n="pb_preview">Preview</div>
+              <div class="builder-preview" id="builderPreview"></div>
+            </div>
+            <div class="builder-actions">
+              <button class="builder-use-btn" id="builderUseBtn" data-i18n="pb_usePrompt">Use this prompt</button>
+              <button class="builder-clear-btn" id="builderClearBtn" data-i18n="pb_clear">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-label" data-i18n="prompt">Prompt</div>
           <div class="ai-prompt-row">
             <input type="text" class="ai-input" id="aiPrompt" placeholder="Describe your mask...">
             <button class="ai-send-btn" id="aiGenerate" title="Generate">
@@ -467,9 +804,9 @@
         <div class="divider"></div>
 
         <div class="panel-section" style="flex:1; min-height:0;">
-          <div class="panel-label">Generated Masks</div>
+          <div class="panel-label" data-i18n="generatedMasks">Generated Masks</div>
           <div class="ai-masks" id="aiMasks">
-            <div class="empty-gallery">Describe a mask and hit generate</div>
+            <div class="empty-gallery" data-i18n="emptyGallery">Describe a mask and hit generate</div>
           </div>
         </div>
       </div>
@@ -478,8 +815,489 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
 
   <script>
+    // ==================== i18n ====================
+    let currentLang = 'en';
+    const i18n = {
+      en: {
+        draw: 'Draw', generate: 'Generate',
+        brush: 'Brush', color: 'Color', size: 'Size',
+        model: 'Model', style: 'Style', coverage: 'Coverage',
+        prompt: 'Prompt', generatedMasks: 'Generated Masks',
+        emptyGallery: 'Describe a mask and hit generate',
+        promptPlaceholder: 'Describe your mask...',
+        s_realistic: 'realistic', s_illustration: 'illustration', s_neon: 'neon',
+        s_watercolor: 'watercolor', s_tribal: 'tribal', s_kawaii: 'kawaii',
+        s_cyber: 'cyber', s_minimal: 'minimal', s_gold: 'gold',
+        s_horror: 'horror', s_y2k: 'y2k', s_glam: 'glam', s_chinese: 'chinese',
+        c_fullFace: 'full face', c_eyesOnly: 'eyes only', c_halfFace: 'half face',
+        c_crown: 'crown', c_lowerFace: 'lower face',
+        statusStarting: 'Starting camera...',
+        statusDalle: 'DALL-E is creating your mask...',
+        statusClaude: 'Claude is designing your mask...',
+        statusFlux: 'Flux is generating your mask...',
+        statusGenerating: (s) => `Generating... (${s}s)`,
+        statusReady: (p) => `Mask ready: "${p}"`,
+        statusFailed: (e) => `Failed: ${e}`,
+        statusFailedGeneric: 'Failed to generate. Check console.',
+        statusTracking: (m) => `Tracking face \u2014 ${m}`,
+        statusNoFace: 'No face detected \u2014 look at the camera',
+        statusCameraReady: 'Camera ready',
+        statusCameraDenied: 'Camera access denied. Please allow camera permissions.',
+        inspiration: 'Inspiration',
+        use: 'use',
+        slotDefault: 'Click to roll a prompt idea...',
+        type: 'Type',
+        t_mask: 'Mask',
+        t_background: 'Background',
+        // Prompt Builder
+        promptBuilder: 'Prompt Builder',
+        pb_subject: 'Subject',
+        pb_dragon: 'dragon', pb_butterfly: 'butterfly', pb_skull: 'skull',
+        pb_flowers: 'flowers', pb_phoenix: 'phoenix', pb_cat: 'cat',
+        pb_galaxy: 'galaxy', pb_koi: 'koi fish', pb_mask: 'opera mask', pb_robot: 'robot',
+        pb_subjectPh: 'or type your own subject...',
+        pb_material: 'Material / Texture',
+        pb_porcelain: 'porcelain', pb_gold: 'gold leaf', pb_crystal: 'crystal',
+        pb_wood: 'wood carved', pb_metal: 'liquid metal', pb_watercolor: 'watercolor',
+        pb_glass: 'stained glass', pb_ice: 'ice / frost',
+        pb_colors: 'Colors',
+        pb_redGold: 'red & gold', pb_bw: 'black & white', pb_pastel: 'pastel rainbow',
+        pb_neon: 'neon cyan & pink', pb_jade: 'emerald & jade', pb_sunset: 'sunset orange',
+        pb_holo: 'holographic',
+        pb_mood: 'Mood / Vibe',
+        pb_elegant: 'elegant', pb_dark: 'dark', pb_cute: 'cute',
+        pb_futuristic: 'futuristic', pb_dreamy: 'dreamy', pb_fierce: 'fierce', pb_serene: 'serene',
+        pb_lighting: 'Lighting',
+        pb_goldenHour: 'golden hour', pb_neonGlow: 'neon glow', pb_softLight: 'soft diffused',
+        pb_rimLight: 'rim light', pb_moonlit: 'moonlit', pb_godRays: 'god rays',
+        pb_chiaroscuro: 'chiaroscuro', pb_biolum: 'bioluminescent',
+        pb_composition: 'Composition',
+        pb_closeup: 'close-up', pb_symmetrical: 'symmetrical', pb_portrait: 'portrait lens',
+        pb_wideAngle: 'wide angle', pb_birdsEye: "bird's eye", pb_tiltShift: 'tilt-shift',
+        pb_cinematic: 'cinematic',
+        pb_extra: 'Extra Detail',
+        pb_extraPh: 'glowing edges, dripping paint, tiny stars...',
+        pb_preview: 'Preview',
+        pb_usePrompt: 'Use this prompt',
+        pb_clear: 'Clear',
+      },
+      zh: {
+        draw: '绘画', generate: '生成',
+        brush: '画笔', color: '颜色', size: '大小',
+        model: '模型', style: '风格', coverage: '覆盖范围',
+        prompt: '提示词', generatedMasks: '已生成面具',
+        emptyGallery: '描述一个面具，然后点击生成',
+        promptPlaceholder: '描述你的面具...',
+        s_realistic: '写实', s_illustration: '插画', s_neon: '霓虹',
+        s_watercolor: '水彩', s_tribal: '部落', s_kawaii: '卡哇伊',
+        s_cyber: '赛博', s_minimal: '极简', s_gold: '金箔',
+        s_horror: '恐怖', s_y2k: '千禧', s_glam: '闪耀', s_chinese: '国风',
+        c_fullFace: '全脸', c_eyesOnly: '仅眼部', c_halfFace: '半脸',
+        c_crown: '额冠', c_lowerFace: '下半脸',
+        statusStarting: '正在启动摄像头...',
+        statusDalle: 'DALL-E 正在创建你的面具...',
+        statusClaude: 'Claude 正在设计你的面具...',
+        statusFlux: 'Flux 正在生成你的面具...',
+        statusGenerating: (s) => `生成中... (${s}秒)`,
+        statusReady: (p) => `面具就绪: "${p}"`,
+        statusFailed: (e) => `失败: ${e}`,
+        statusFailedGeneric: '生成失败，请查看控制台。',
+        statusTracking: (m) => `正在追踪面部 \u2014 ${m}`,
+        statusNoFace: '未检测到面部 \u2014 请面对摄像头',
+        statusCameraReady: '摄像头就绪',
+        statusCameraDenied: '摄像头访问被拒绝，请允许摄像头权限。',
+        inspiration: '灵感',
+        use: '使用',
+        slotDefault: '点击获取提示灵感...',
+        type: '类型',
+        t_mask: '面具',
+        t_background: '背景',
+        // Prompt Builder
+        promptBuilder: '提示词构建器',
+        pb_subject: '主题',
+        pb_dragon: '龙', pb_butterfly: '蝴蝶', pb_skull: '骷髅',
+        pb_flowers: '花卉', pb_phoenix: '凤凰', pb_cat: '猫',
+        pb_galaxy: '银河', pb_koi: '锦鲤', pb_mask: '脸谱', pb_robot: '机器人',
+        pb_subjectPh: '或输入自定义主题...',
+        pb_material: '材质 / 纹理',
+        pb_porcelain: '陶瓷', pb_gold: '金箔', pb_crystal: '水晶',
+        pb_wood: '木雕', pb_metal: '液态金属', pb_watercolor: '水彩',
+        pb_glass: '彩色玻璃', pb_ice: '冰霜',
+        pb_colors: '配色',
+        pb_redGold: '红金', pb_bw: '黑白', pb_pastel: '粉彩虹',
+        pb_neon: '霓虹青粉', pb_jade: '翡翠玉绿', pb_sunset: '日落橙',
+        pb_holo: '全息彩虹',
+        pb_mood: '氛围 / 风格',
+        pb_elegant: '优雅', pb_dark: '暗黑', pb_cute: '可爱',
+        pb_futuristic: '未来感', pb_dreamy: '梦幻', pb_fierce: '霸气', pb_serene: '宁静',
+        pb_lighting: '光照',
+        pb_goldenHour: '黄金时刻', pb_neonGlow: '霓虹光', pb_softLight: '柔和漫射',
+        pb_rimLight: '轮廓光', pb_moonlit: '月光', pb_godRays: '丁达尔光',
+        pb_chiaroscuro: '明暗对比', pb_biolum: '生物发光',
+        pb_composition: '构图',
+        pb_closeup: '特写', pb_symmetrical: '对称', pb_portrait: '人像镜头',
+        pb_wideAngle: '广角', pb_birdsEye: '鸟瞰', pb_tiltShift: '移轴',
+        pb_cinematic: '电影感',
+        pb_extra: '额外细节',
+        pb_extraPh: '发光边缘、滴落颜料、小星星...',
+        pb_preview: '预览',
+        pb_usePrompt: '使用此提示词',
+        pb_clear: '清除',
+      }
+    };
+
+    const promptExamples = {
+      en: [
+        'Venetian masquerade with gold filigree',
+        'Dragon scales covering the forehead',
+        'Blooming cherry blossom petals on cheeks',
+        'Constellation map with glowing stars',
+        'Cracked porcelain doll face',
+        'Tiger stripes with amber eyes',
+        'Melting ice cream dripping down',
+        'Steampunk goggles with brass gears',
+        'Butterfly wings framing the eyes',
+        'Ancient Egyptian pharaoh with gold and lapis',
+        'Galaxy nebula swirl across the face',
+        'Vine and flower crown growing over face',
+        'Koi fish swimming across the cheek',
+        'Stained glass cathedral window pattern',
+        'Robot with glowing circuit board lines',
+        'Frost and ice crystals forming on skin',
+        'Phoenix feathers rising from chin to forehead',
+        'Day of the Dead sugar skull with marigolds',
+        'Ocean waves and sea foam',
+        'Geometric low-poly crystal face',
+        'Peking opera warrior with red and black paint',
+        'Jade carved mask with cloud motifs',
+        'Samurai demon oni mask',
+        'Art deco geometric with emerald and gold',
+        'Bioluminescent deep sea creature patterns',
+      ],
+      zh: [
+        '威尼斯假面舞会金丝面具',
+        '龙鳞覆盖前额',
+        '脸颊上盛开的樱花花瓣',
+        '闪耀星辰的星座图',
+        '碎裂的瓷娃娃面容',
+        '虎纹与琥珀色眼眸',
+        '融化冰淇淋滴落',
+        '蒸汽朋克护目镜与黄铜齿轮',
+        '蝴蝶翅膀环绕双眼',
+        '古埃及法老黄金与青金石',
+        '银河星云漩涡横跨面部',
+        '藤蔓与花冠覆盖面容',
+        '锦鲤游过脸颊',
+        '彩色玻璃教堂窗花图案',
+        '发光电路板线条机器人',
+        '冰霜和冰晶在皮肤上结晶',
+        '凤凰羽毛从下巴升至额头',
+        '亡灵节糖骷髅与万寿菊',
+        '海浪与浪花',
+        '几何低多边形水晶面孔',
+        '京剧武生红黑脸谱',
+        '翡翠雕刻云纹面具',
+        '武士鬼面般若面具',
+        '装饰艺术风格翡翠与金色几何图案',
+        '深海生物发光纹路',
+      ],
+    };
+
+    const bgExamples = {
+      en: [
+        'Cherry blossom garden in spring',
+        'Neon-lit Tokyo alley at night',
+        'Underwater coral reef with tropical fish',
+        'Northern lights over snowy mountains',
+        'Dreamy pastel clouds at sunset',
+        'Cyberpunk city skyline with holograms',
+        'Enchanted forest with glowing mushrooms',
+        'Ancient temple ruins overgrown with vines',
+        'Retro 80s synthwave grid landscape',
+        'Cozy library with floating books',
+        'Space station orbiting Saturn',
+        'Bamboo forest with misty mountains',
+        'Stained glass cathedral interior',
+        'Vaporwave sunset over an infinite ocean',
+        'Studio Ghibli meadow with wildflowers',
+      ],
+      zh: [
+        '春日樱花庭院',
+        '霓虹灯下的东京夜巷',
+        '水下珊瑚礁与热带鱼',
+        '雪山上的北极光',
+        '日落时分梦幻粉彩云朵',
+        '赛博朋克全息城市天际线',
+        '发光蘑菇的魔法森林',
+        '藤蔓缠绕的古老神殿遗迹',
+        '复古80年代合成波网格景观',
+        '漂浮书本的温馨图书馆',
+        '环绕土星的空间站',
+        '云雾缭绕的竹林与远山',
+        '彩色玻璃大教堂内部',
+        '蒸汽波日落与无尽海洋',
+        '吉卜力风格野花草地',
+      ],
+    };
+
+    function t(key, ...args) {
+      const val = i18n[currentLang][key] || i18n.en[key] || key;
+      return typeof val === 'function' ? val(...args) : val;
+    }
+
+    function applyLanguage() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+      });
+      const aiPrompt = document.getElementById('aiPrompt');
+      if (aiPrompt) aiPrompt.placeholder = t('promptPlaceholder');
+      // Translate placeholder attributes
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        el.placeholder = t(el.dataset['i18nPh']);
+      });
+      // Reset slot text to localized default if nothing rolled yet
+      const st = document.getElementById('slotText');
+      if (st) {
+        const allDefaults = [i18n.en.slotDefault, i18n.zh.slotDefault];
+        if (allDefaults.includes(st.textContent) || lastSlotIndex === -1) {
+          st.textContent = t('slotDefault');
+        }
+      }
+      // Refresh builder preview
+      if (typeof updateBuilderPreview === 'function') updateBuilderPreview();
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLang = btn.dataset.lang;
+        applyLanguage();
+      });
+    });
+
+    // ==================== PROMPT BUILDER ====================
+    const builderToggle = document.getElementById('builderToggle');
+    const builderBody = document.getElementById('builderBody');
+    const builderPreview = document.getElementById('builderPreview');
+    const builderState = { subject: '', material: '', colors: '', mood: '', lighting: '', composition: '', extra: '' };
+
+    // Chinese display labels for data-val values (English is used as-is)
+    const zhChipLabels = {
+      dragon: '龙', butterfly: '蝴蝶', skull: '骷髅', flowers: '花卉',
+      phoenix: '凤凰', cat: '猫', galaxy: '银河', koi: '锦鲤',
+      mask: '脸谱', robot: '机器人',
+      porcelain: '陶瓷', 'gold leaf': '金箔', crystal: '水晶',
+      'wood carved': '木雕', 'liquid metal': '液态金属', watercolor: '水彩',
+      'stained glass': '彩色玻璃', 'ice frost': '冰霜',
+      'red and gold': '红金', 'black and white': '黑白', 'pastel rainbow': '粉彩虹',
+      'neon cyan and pink': '霓虹青粉', 'emerald and jade': '翡翠玉绿',
+      'sunset orange': '日落橙', 'iridescent holographic': '全息彩虹',
+      'elegant and regal': '优雅', 'dark and mysterious': '暗黑',
+      'cute and playful': '可爱', 'futuristic and techy': '未来感',
+      'ethereal and dreamy': '梦幻', 'fierce and powerful': '霸气',
+      'serene and peaceful': '宁静',
+      'golden hour sunlight': '黄金时刻', 'neon glow': '霓虹光',
+      'soft diffused light': '柔和漫射', 'dramatic rim lighting': '轮廓光',
+      'moonlit, blue ambient': '月光', 'volumetric god rays': '丁达尔光',
+      'chiaroscuro, high contrast shadows': '明暗对比', 'bioluminescent glow': '生物发光',
+      'extreme close-up macro': '特写', 'symmetrical centered': '对称',
+      '85mm portrait lens, shallow depth of field': '人像镜头',
+      'wide angle panoramic': '广角', 'birds-eye view from above': '鸟瞰',
+      'tilt-shift miniature effect': '移轴', 'cinematic widescreen, film grain': '电影感',
+    };
+
+    // Translate a data-val to Chinese display, or return as-is for English
+    function zhLabel(val) {
+      // Handle comma-separated multi-selects
+      return val.split(', ').map(v => zhChipLabels[v] || v).join('、');
+    }
+
+    // Toggle open/close
+    builderToggle.addEventListener('click', () => {
+      builderToggle.classList.toggle('open');
+    });
+
+    // Chip selection (multi-select per field except subject which is single)
+    document.querySelectorAll('.builder-chips').forEach(group => {
+      const field = group.dataset.field;
+      group.querySelectorAll('.builder-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          if (field === 'subject') {
+            // Single select for subject
+            group.querySelectorAll('.builder-chip').forEach(c => c.classList.remove('selected'));
+            if (builderState[field] === chip.dataset.val) {
+              chip.classList.remove('selected');
+              builderState[field] = '';
+            } else {
+              chip.classList.add('selected');
+              builderState[field] = chip.dataset.val;
+            }
+            // Clear custom input when chip selected
+            const customInput = builderBody.querySelector(`input[data-field="${field}"]`);
+            if (customInput && builderState[field]) customInput.value = '';
+          } else {
+            // Toggle for other fields
+            chip.classList.toggle('selected');
+            const selected = [...group.querySelectorAll('.builder-chip.selected')].map(c => c.dataset.val);
+            builderState[field] = selected.join(', ');
+          }
+          updateBuilderPreview();
+        });
+      });
+    });
+
+    // Custom text inputs
+    document.querySelectorAll('.builder-custom').forEach(input => {
+      const field = input.dataset.field;
+      input.addEventListener('input', () => {
+        if (field === 'subject' && input.value.trim()) {
+          // Deselect chips when typing custom
+          const group = builderBody.querySelector(`.builder-chips[data-field="${field}"]`);
+          if (group) group.querySelectorAll('.builder-chip').forEach(c => c.classList.remove('selected'));
+          builderState[field] = input.value.trim();
+        } else if (field === 'extra') {
+          builderState[field] = input.value.trim();
+        }
+        updateBuilderPreview();
+      });
+    });
+
+    // Build the Chinese prompt string (always sent to the AI for consistent cultural aesthetic)
+    function buildChinesePrompt() {
+      const parts = [];
+      const isBg = (typeof generationType !== 'undefined') && generationType === 'background';
+
+      if (builderState.subject) parts.push(zhLabel(builderState.subject));
+      if (isBg && !builderState.subject) parts.push('风景');
+
+      if (builderState.material) parts.push(`${zhLabel(builderState.material)}材质`);
+      if (builderState.colors) parts.push(`${zhLabel(builderState.colors)}配色`);
+      if (builderState.mood) parts.push(`${zhLabel(builderState.mood)}氛围`);
+      if (builderState.lighting) parts.push(`${zhLabel(builderState.lighting)}光效`);
+      if (builderState.composition) parts.push(`${zhLabel(builderState.composition)}构图`);
+      if (builderState.extra) parts.push(builderState.extra);
+
+      return parts.join('，');
+    }
+
+    // Build a localized display string (for the preview)
+    function buildLocalizedPreview() {
+      const zh = currentLang === 'zh';
+      const parts = [];
+      const isBg = (typeof generationType !== 'undefined') && generationType === 'background';
+
+      if (builderState.subject) {
+        parts.push(zh ? zhLabel(builderState.subject) : builderState.subject);
+      }
+      if (isBg && !builderState.subject) parts.push(zh ? '风景' : 'scene');
+
+      if (builderState.material) {
+        parts.push(zh ? `${zhLabel(builderState.material)}材质` : `made of ${builderState.material}`);
+      }
+      if (builderState.colors) {
+        parts.push(zh ? `${zhLabel(builderState.colors)}配色` : `in ${builderState.colors}`);
+      }
+      if (builderState.mood) {
+        parts.push(zh ? `${zhLabel(builderState.mood)}氛围` : `${builderState.mood} feeling`);
+      }
+      if (builderState.lighting) {
+        parts.push(zh ? `${zhLabel(builderState.lighting)}光效` : builderState.lighting);
+      }
+      if (builderState.composition) {
+        parts.push(zh ? `${zhLabel(builderState.composition)}构图` : builderState.composition);
+      }
+      if (builderState.extra) parts.push(builderState.extra);
+
+      return parts.join(zh ? '，' : ', ');
+    }
+
+    function updateBuilderPreview() {
+      const zh = currentLang === 'zh';
+      const display = buildLocalizedPreview();
+      const chinese = buildChinesePrompt();
+
+      if (display) {
+        if (!zh && chinese) {
+          // English UI: show English preview with Chinese AI prompt underneath
+          builderPreview.innerHTML = `${display}<br><span style="font-size:9px;color:rgba(0,0,0,0.3);font-style:italic;">AI prompt: ${chinese}</span>`;
+        } else {
+          builderPreview.textContent = display;
+        }
+        builderPreview.style.fontStyle = 'normal';
+      } else {
+        builderPreview.textContent = zh ? '选择上方选项来构建提示词...' : 'Select options above to build a prompt...';
+        builderPreview.style.fontStyle = 'italic';
+      }
+    }
+
+    // Use prompt button -- always sends Chinese to the AI
+    document.getElementById('builderUseBtn').addEventListener('click', () => {
+      const prompt = buildChinesePrompt();
+      if (prompt) {
+        document.getElementById('aiPrompt').value = prompt;
+      }
+    });
+
+    // Clear button
+    document.getElementById('builderClearBtn').addEventListener('click', () => {
+      Object.keys(builderState).forEach(k => builderState[k] = '');
+      builderBody.querySelectorAll('.builder-chip').forEach(c => c.classList.remove('selected'));
+      builderBody.querySelectorAll('.builder-custom').forEach(i => i.value = '');
+      updateBuilderPreview();
+    });
+
+    updateBuilderPreview();
+
+    // ==================== PROMPT SLOT MACHINE ====================
+    let lastSlotIndex = -1;
+    const slotText = document.getElementById('slotText');
+    const slotIcon = document.querySelector('.slot-icon');
+    const promptSlot = document.getElementById('promptSlot');
+    const slotUseBtn = document.getElementById('slotUseBtn');
+
+    function rollSlot() {
+      const pool = generationType === 'background' ? bgExamples : promptExamples;
+      const examples = pool[currentLang];
+      let idx;
+      do { idx = Math.floor(Math.random() * examples.length); } while (idx === lastSlotIndex && examples.length > 1);
+      lastSlotIndex = idx;
+
+      // Spin animation
+      slotIcon.classList.remove('spin');
+      void slotIcon.offsetWidth; // reflow
+      slotIcon.classList.add('spin');
+
+      // Quick shuffle effect
+      let ticks = 0;
+      const totalTicks = 6;
+      const interval = setInterval(() => {
+        const rIdx = Math.floor(Math.random() * examples.length);
+        slotText.textContent = examples[rIdx];
+        ticks++;
+        if (ticks >= totalTicks) {
+          clearInterval(interval);
+          slotText.textContent = examples[idx];
+        }
+      }, 60);
+    }
+
+    promptSlot.addEventListener('click', (e) => {
+      if (e.target === slotUseBtn || slotUseBtn.contains(e.target)) return;
+      rollSlot();
+    });
+
+    slotUseBtn.addEventListener('click', () => {
+      const text = slotText.textContent;
+      const defaultTexts = [t('slotDefault'), i18n.en.slotDefault, i18n.zh.slotDefault];
+      if (!defaultTexts.includes(text)) {
+        document.getElementById('aiPrompt').value = text;
+      }
+    });
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -492,17 +1310,21 @@
     let animFrame = 0;
 
     // ==================== AI MASK STATE ====================
-    // Keys stored in browser localStorage - never in source code
-    function getKey(name) {
+    // Keys: local override → localStorage fallback → prompt
+    function getKey(name, hardcoded) {
+      if (hardcoded) return hardcoded;
       const k = localStorage.getItem(`mask_key_${name}`);
       if (k) return k;
-      const val = window.prompt(`Enter your ${name} API key to generate masks.\nThis is saved in your browser only.`);
+      const val = window.prompt(`Enter your ${name} API key.\nSaved in your browser only.`);
       if (val && val.trim()) { localStorage.setItem(`mask_key_${name}`, val.trim()); return val.trim(); }
       return null;
     }
-    function ANTHROPIC_KEY() { return getKey('Anthropic'); }
-    function FAL_KEY() { return getKey('FAL'); }
-    function OPENAI_KEY() { return getKey('OpenAI'); }
+    const _AK = 'YOUR_ANTHROPIC_KEY';
+    const _FK = 'YOUR_FAL_KEY';
+    const _OK = 'YOUR_OPENAI_KEY';
+    function ANTHROPIC_KEY() { return getKey('Anthropic', _AK); }
+    function FAL_KEY() { return getKey('FAL', _FK); }
+    function OPENAI_KEY() { return getKey('OpenAI', _OK); }
 
     let aiMaskImage = null;
     let aiGeneratedMasks = [];
@@ -525,10 +1347,15 @@
       const btn = document.getElementById('aiGenerate');
       btn.disabled = true;
       btn.classList.add('loading');
-      statusEl.textContent = 'DALL-E is creating your mask...';
+      statusEl.textContent = t('statusDalle');
 
-      const coverageHint = selectedCoverage === 'full face' ? 'covering the full face area' : `focused on the ${selectedCoverage} area`;
-      const maskPrompt = `A face mask/face paint design viewed from directly in front on a pure solid black (#000000) background. The design is: ${prompt}. This is an AR face overlay filter, ${coverageHint}. Show ONLY the decorative mask elements (paint, patterns, accessories, markings). Do NOT show any human face, skin, head shape, or neck. Position mask elements where they would sit on a face (eyes at center, nose below, forehead above). Must be symmetric and centered. Think high-end Instagram/Snapchat face filter design asset. No text, no watermarks, no borders. Vivid colors, high detail, crisp edges.`;
+      let maskPrompt;
+      if (generationType === 'background') {
+        maskPrompt = `A beautiful immersive background scene: ${prompt}. This is a virtual background for a video call / AR camera. Wide angle, no people, no text, no watermarks. Vivid colors, high detail, atmospheric, cinematic. Aspect ratio 4:3.`;
+      } else {
+        const coverageHint = selectedCoverage === 'full face' ? 'covering the full face area' : `focused on the ${selectedCoverage} area`;
+        maskPrompt = `A face mask/face paint design viewed from directly in front on a pure solid black (#000000) background. The design is: ${prompt}. This is an AR face overlay filter, ${coverageHint}. Show ONLY the decorative mask elements (paint, patterns, accessories, markings). Do NOT show any human face, skin, head shape, or neck. Position mask elements where they would sit on a face (eyes at center, nose below, forehead above). Must be symmetric and centered. Think high-end Instagram/Snapchat face filter design asset. No text, no watermarks, no borders. Vivid colors, high detail, crisp edges.`;
+      }
 
       try {
         const response = await fetch('https://api.openai.com/v1/images/generations', {
@@ -560,18 +1387,20 @@
           img.src = `data:image/png;base64,${b64}`;
         });
 
-        // Remove dark background
-        const processed = removeBackground(img);
-        // Wait for processed image to load
-        await new Promise((resolve) => {
-          if (processed.complete) resolve();
-          else processed.onload = resolve;
-        });
-
-        applyAIMask(processed, prompt);
+        if (generationType === 'background') {
+          applyAIBackground(img, prompt);
+        } else {
+          // Remove dark background
+          const processed = removeBackground(img);
+          await new Promise((resolve) => {
+            if (processed.complete) resolve();
+            else processed.onload = resolve;
+          });
+          applyAIMask(processed, prompt);
+        }
       } catch (err) {
         console.error('OpenAI mask error:', err);
-        statusEl.textContent = `Failed: ${err.message || 'Check console.'}`;
+        statusEl.textContent = t('statusFailed', err.message || t('statusFailedGeneric'));
       } finally {
         btn.disabled = false;
         btn.classList.remove('loading');
@@ -583,7 +1412,7 @@
       const btn = document.getElementById('aiGenerate');
       btn.disabled = true;
       btn.classList.add('loading');
-      statusEl.textContent = 'Claude is designing your mask...';
+      statusEl.textContent = t('statusClaude');
 
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -597,7 +1426,18 @@
           body: JSON.stringify({
             model: 'claude-sonnet-4-20250514',
             max_tokens: 4096,
-            system: `You are an SVG mask designer for an AR face filter app. Generate SVG code for face masks/overlays.
+            system: generationType === 'background'
+              ? `You are an SVG background scene designer for an AR camera app. Generate SVG code for virtual backgrounds.
+
+RULES:
+- Output ONLY the SVG code, nothing else. No markdown, no explanation.
+- The SVG viewBox should be "0 0 640 480" (landscape 4:3).
+- Fill the entire canvas with the scene. Use a background rect.
+- Make designs colorful, detailed, atmospheric, and immersive.
+- You can use gradients, filters (blur, glow), patterns, and complex paths.
+- Make it look GOOD - this is art for a virtual background.
+- No text, no people, no watermarks.`
+              : `You are an SVG mask designer for an AR face filter app. Generate SVG code for face masks/overlays.
 
 RULES:
 - Output ONLY the SVG code, nothing else. No markdown, no explanation.
@@ -610,7 +1450,9 @@ RULES:
 - Keep it as a flat overlay mask that maps onto a face.
 - You can use gradients, filters (blur, glow), patterns, and complex paths.
 - Make it look GOOD - this is art, not a wireframe.`,
-            messages: [{ role: 'user', content: `Create an SVG face mask for: ${prompt}` }]
+            messages: [{ role: 'user', content: generationType === 'background'
+              ? `Create an SVG virtual background scene for: ${prompt}`
+              : `Create an SVG face mask for: ${prompt}` }]
           })
         });
 
@@ -627,10 +1469,14 @@ RULES:
         const img = new Image();
         await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = url; });
 
-        applyAIMask(img, prompt);
+        if (generationType === 'background') {
+          applyAIBackground(img, prompt);
+        } else {
+          applyAIMask(img, prompt);
+        }
       } catch (err) {
         console.error('Claude mask error:', err);
-        statusEl.textContent = 'Failed to generate. Check console.';
+        statusEl.textContent = t('statusFailedGeneric');
       } finally {
         btn.disabled = false;
         btn.classList.remove('loading');
@@ -642,9 +1488,11 @@ RULES:
       const btn = document.getElementById('aiGenerate');
       btn.disabled = true;
       btn.classList.add('loading');
-      statusEl.textContent = 'Flux is generating your mask...';
+      statusEl.textContent = t('statusFlux');
 
-      const maskPrompt = `${prompt}, face mask overlay, transparent background, PNG, centered on face, no background, isolated on black background, high detail, front facing`;
+      const maskPrompt = generationType === 'background'
+        ? `${prompt}, immersive background scene, virtual background, no people, no text, cinematic, detailed, 4:3 aspect ratio`
+        : `${prompt}, face mask overlay, transparent background, PNG, centered on face, no background, isolated on black background, high detail, front facing`;
 
       try {
         // Submit request
@@ -687,7 +1535,7 @@ RULES:
             } else if (statusData.status === 'FAILED') {
               throw new Error('FAL generation failed');
             }
-            statusEl.textContent = `Generating... (${i + 1}s)`;
+            statusEl.textContent = t('statusGenerating', i + 1);
           }
           if (!result) throw new Error('Timed out waiting for FAL');
           imageUrl = result.images[0].url;
@@ -698,12 +1546,15 @@ RULES:
         img.crossOrigin = 'anonymous';
         await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = imageUrl; });
 
-        // Remove dark background to make it overlay-friendly
-        const processed = removeBackground(img);
-        applyAIMask(processed, prompt);
+        if (generationType === 'background') {
+          applyAIBackground(img, prompt);
+        } else {
+          const processed = removeBackground(img);
+          applyAIMask(processed, prompt);
+        }
       } catch (err) {
         console.error('FAL mask error:', err);
-        statusEl.textContent = 'Failed to generate. Check console.';
+        statusEl.textContent = t('statusFailedGeneric');
       } finally {
         btn.disabled = false;
         btn.classList.remove('loading');
@@ -734,10 +1585,14 @@ RULES:
     }
 
     // -------------------- Shared --------------------
+    let aiBgImage = null; // current background image
+
     function applyAIMask(img, prompt) {
-      const maskData = { image: img, prompt };
+      const maskData = { image: img, prompt, type: 'mask' };
       aiGeneratedMasks.push(maskData);
       aiMaskImage = img;
+      aiBgImage = null;
+      document.body.classList.remove('bg-mode');
       document.querySelectorAll('.mask-btn').forEach(b => b.classList.remove('active'));
       currentMask = 'ai';
       aiMaskOffsetU = 0;
@@ -745,7 +1600,20 @@ RULES:
       aiMaskScale = 1;
       updateCanvasInteraction();
       addMaskThumbnail(maskData);
-      statusEl.textContent = `Mask ready: "${prompt}"`;
+      statusEl.textContent = t('statusReady', prompt);
+    }
+
+    function applyAIBackground(img, prompt) {
+      const maskData = { image: img, prompt, type: 'background' };
+      aiGeneratedMasks.push(maskData);
+      aiBgImage = img;
+      aiMaskImage = null;
+      document.body.classList.add('bg-mode');
+      document.querySelectorAll('.mask-btn').forEach(b => b.classList.remove('active'));
+      currentMask = 'bg';
+      updateCanvasInteraction();
+      addMaskThumbnail(maskData);
+      statusEl.textContent = t('statusReady', prompt);
     }
 
     function addMaskThumbnail(maskData) {
@@ -766,11 +1634,20 @@ RULES:
         container.querySelectorAll('.ai-mask-thumb').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.mask-btn').forEach(b => b.classList.remove('active'));
         img.classList.add('active');
-        aiMaskImage = maskData.image;
-        currentMask = 'ai';
-        aiMaskOffsetU = 0;
-        aiMaskOffsetV = 0;
-        aiMaskScale = 1;
+        if (maskData.type === 'background') {
+          aiBgImage = maskData.image;
+          aiMaskImage = null;
+          currentMask = 'bg';
+          document.body.classList.add('bg-mode');
+        } else {
+          aiMaskImage = maskData.image;
+          aiBgImage = null;
+          currentMask = 'ai';
+          document.body.classList.remove('bg-mode');
+          aiMaskOffsetU = 0;
+          aiMaskOffsetV = 0;
+          aiMaskScale = 1;
+        }
         updateCanvasInteraction();
       });
 
@@ -814,10 +1691,25 @@ RULES:
       });
     });
 
+    // Type toggle (mask vs background)
+    let generationType = 'mask';
+    document.querySelectorAll('.type-tag').forEach(tag => {
+      tag.addEventListener('click', () => {
+        document.querySelectorAll('.type-tag').forEach(t => t.classList.remove('active'));
+        tag.classList.add('active');
+        generationType = tag.dataset.type;
+        // Reset slot text when switching type
+        lastSlotIndex = -1;
+        slotText.textContent = t('slotDefault');
+      });
+    });
+
     function buildPrompt(text) {
       let parts = [text];
       if (selectedStyles.length > 0) parts.push(selectedStyles.join(', ') + ' style');
-      if (selectedCoverage && selectedCoverage !== 'full face') parts.push(selectedCoverage);
+      if (generationType === 'mask') {
+        if (selectedCoverage && selectedCoverage !== 'full face') parts.push(selectedCoverage);
+      }
       return parts.join(', ');
     }
 
@@ -1174,13 +2066,21 @@ RULES:
       tempCanvas.width = 640;
       tempCanvas.height = 480;
       const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.translate(640, 0);
-      tempCtx.scale(-1, 1);
-      tempCtx.drawImage(video, 0, 0, 640, 480);
-      tempCtx.setTransform(1, 0, 0, 1, 0, 0);
-      if (landmarks) {
-        drawMask(tempCtx, landmarks);
+      if (currentMask === 'bg' && aiBgImage && segMask) {
+        // Composite: bg + person cutout
+        tempCtx.drawImage(aiBgImage, 0, 0, 640, 480);
+        // Draw the person layer from the main canvas (already composited)
+        tempCtx.drawImage(canvas, 0, 0);
         renderStrokes(tempCtx);
+      } else {
+        tempCtx.translate(640, 0);
+        tempCtx.scale(-1, 1);
+        tempCtx.drawImage(video, 0, 0, 640, 480);
+        tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+        if (landmarks) {
+          drawMask(tempCtx);
+          renderStrokes(tempCtx);
+        }
       }
       const link = document.createElement('a');
       link.download = `mask-capture-${Date.now()}.png`;
@@ -1414,7 +2314,80 @@ RULES:
         case 'diamond': drawDiamondMesh(c); break;
         case 'flame': drawFlameCrown(c); break;
         case 'ai': drawAIMask(c); break;
+        case 'bg': drawBackground(c); break;
       }
+    }
+
+    // Background compositing using selfie segmentation mask
+    let segMask = null; // stores the latest segmentation mask
+
+    function drawBackground(c) {
+      if (!aiBgImage) return;
+
+      const bgCanvas = document.getElementById('bgCanvas');
+      const bgCtx = bgCanvas.getContext('2d');
+
+      // Draw the background image (mirrored to match video)
+      bgCtx.save();
+      bgCtx.translate(640, 0);
+      bgCtx.scale(-1, 1);
+      bgCtx.drawImage(aiBgImage, 0, 0, 640, 480);
+      bgCtx.restore();
+
+      if (!segMask) return;
+
+      // Draw the person cutout from video using segmentation mask
+      // 1. Draw mirrored video onto a temp canvas
+      // 2. Apply segmentation mask as alpha
+      // 3. Draw result onto main canvas
+
+      const tmpC = document.createElement('canvas');
+      tmpC.width = 640; tmpC.height = 480;
+      const tmpCtx = tmpC.getContext('2d');
+
+      // Draw mirrored video
+      tmpCtx.save();
+      tmpCtx.translate(640, 0);
+      tmpCtx.scale(-1, 1);
+      tmpCtx.drawImage(video, 0, 0, 640, 480);
+      tmpCtx.restore();
+
+      // Get video pixels
+      const frame = tmpCtx.getImageData(0, 0, 640, 480);
+      const pixels = frame.data;
+
+      // Get mask pixels (segMask is already an ImageData or canvas)
+      const maskC = document.createElement('canvas');
+      maskC.width = segMask.width; maskC.height = segMask.height;
+      const maskCtx = maskC.getContext('2d');
+      maskCtx.drawImage(segMask, 0, 0);
+      const maskData = maskCtx.getImageData(0, 0, maskC.width, maskC.height);
+      const maskPixels = maskData.data;
+
+      // Scale factor if mask size differs from canvas
+      const sx = maskC.width / 640;
+      const sy = maskC.height / 480;
+
+      // Apply mask: set alpha of video pixels based on segmentation
+      for (let y = 0; y < 480; y++) {
+        for (let x = 0; x < 640; x++) {
+          const fi = (y * 640 + x) * 4;
+          const mx = Math.floor(x * sx);
+          const my = Math.floor(y * sy);
+          const mi = (my * maskC.width + mx) * 4;
+          // Segmentation mask: person pixels are bright (close to 255)
+          const confidence = maskPixels[mi]; // red channel = person confidence
+          // Smooth edge with threshold
+          let alpha;
+          if (confidence > 200) alpha = 255;
+          else if (confidence > 100) alpha = Math.floor((confidence - 100) / 100 * 255);
+          else alpha = 0;
+          pixels[fi + 3] = alpha;
+        }
+      }
+
+      tmpCtx.putImageData(frame, 0, 0);
+      c.drawImage(tmpC, 0, 0);
     }
 
     // ==================== FACE MESH ====================
@@ -1433,6 +2406,11 @@ RULES:
     faceMesh.onResults((results) => {
       ctx.clearRect(0, 0, 640, 480);
       drawCtx.clearRect(0, 0, 640, 480);
+      // Clear bg canvas when not in bg mode
+      if (currentMask !== 'bg') {
+        const bgC = document.getElementById('bgCanvas');
+        bgC.getContext('2d').clearRect(0, 0, 640, 480);
+      }
       animFrame++;
 
       if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
@@ -1440,10 +2418,28 @@ RULES:
         drawMask(ctx);
         renderStrokes(drawCtx);
         const mode = drawMode ? 'drawing' : (currentMask === 'none' ? 'select a mask' : currentMask);
-        statusEl.textContent = `Tracking face \u2014 ${mode}`;
+        statusEl.textContent = t('statusTracking', mode);
       } else {
         landmarks = null;
-        statusEl.textContent = 'No face detected \u2014 look at the camera';
+        statusEl.textContent = t('statusNoFace');
+      }
+    });
+
+    // ==================== SELFIE SEGMENTATION ====================
+
+    const selfieSegmentation = new SelfieSegmentation({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+    });
+
+    selfieSegmentation.setOptions({
+      modelSelection: 1, // 1 = landscape model (more accurate)
+      selfieMode: true,
+    });
+
+    selfieSegmentation.onResults((results) => {
+      // Store the segmentation mask for use in drawBackground
+      if (results.segmentationMask) {
+        segMask = results.segmentationMask;
       }
     });
 
@@ -1453,13 +2449,19 @@ RULES:
         video.srcObject = stream;
         await video.play();
         const camera = new Camera(video, {
-          onFrame: async () => { await faceMesh.send({ image: video }); },
+          onFrame: async () => {
+            await faceMesh.send({ image: video });
+            // Only run segmentation when in bg mode to save resources
+            if (currentMask === 'bg') {
+              await selfieSegmentation.send({ image: video });
+            }
+          },
           width: 640, height: 480
         });
         camera.start();
-        statusEl.textContent = 'Camera ready';
+        statusEl.textContent = t('statusCameraReady');
       } catch (err) {
-        statusEl.textContent = 'Camera access denied. Please allow camera permissions.';
+        statusEl.textContent = t('statusCameraDenied');
         console.error(err);
       }
     }
