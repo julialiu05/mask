@@ -826,6 +826,9 @@
       console.error('Global error:', msg, src, line, col, err);
     };
 
+    // ==================== GLOBALS ====================
+    let generationType = 'mask';
+
     // ==================== i18n ====================
     let currentLang = 'en';
     const i18n = {
@@ -1697,8 +1700,7 @@ RULES:
       });
     });
 
-    // Type toggle (mask vs background)
-    let generationType = 'mask';
+    // Type toggle (mask vs background) — declared earlier, handler here
     document.querySelectorAll('.type-tag').forEach(tag => {
       tag.addEventListener('click', () => {
         document.querySelectorAll('.type-tag').forEach(t => t.classList.remove('active'));
