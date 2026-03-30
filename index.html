@@ -1093,6 +1093,8 @@
     // -------------------- OpenAI (DALL-E) --------------------
     async function generateOpenAIMask(prompt) {
       const btn = document.getElementById('aiGenerate');
+      const key = OPENAI_KEY();
+      if (!key) { statusEl.textContent = 'No OpenAI API key provided.'; return; }
       btn.disabled = true;
       btn.classList.add('loading');
       statusEl.textContent = t('statusDalle');
@@ -1110,7 +1112,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_KEY()}`
+            'Authorization': `Bearer ${key}`
           },
           body: JSON.stringify({
             model: 'dall-e-3',
@@ -1158,6 +1160,8 @@
     // -------------------- Claude (SVG) --------------------
     async function generateClaudeMask(prompt) {
       const btn = document.getElementById('aiGenerate');
+      const key = ANTHROPIC_KEY();
+      if (!key) { statusEl.textContent = 'No Anthropic API key provided.'; return; }
       btn.disabled = true;
       btn.classList.add('loading');
       statusEl.textContent = t('statusClaude');
@@ -1167,7 +1171,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_KEY(),
+            'x-api-key': key,
             'anthropic-version': '2023-06-01',
             'anthropic-dangerous-direct-browser-access': 'true'
           },
@@ -1234,6 +1238,8 @@ RULES:
     // -------------------- FAL (Flux) --------------------
     async function generateFalMask(prompt) {
       const btn = document.getElementById('aiGenerate');
+      const key = FAL_KEY();
+      if (!key) { statusEl.textContent = 'No FAL API key provided.'; return; }
       btn.disabled = true;
       btn.classList.add('loading');
       statusEl.textContent = t('statusFlux');
@@ -1248,7 +1254,7 @@ RULES:
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Key ${FAL_KEY()}`
+            'Authorization': `Key ${key}`
           },
           body: JSON.stringify({
             prompt: maskPrompt,
@@ -1271,12 +1277,12 @@ RULES:
           for (let i = 0; i < 60; i++) {
             await new Promise(r => setTimeout(r, 1000));
             const statusRes = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${reqId}/status`, {
-              headers: { 'Authorization': `Key ${FAL_KEY}` }
+              headers: { 'Authorization': `Key ${key}` }
             });
             const statusData = await statusRes.json();
             if (statusData.status === 'COMPLETED') {
               const resultRes = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${reqId}`, {
-                headers: { 'Authorization': `Key ${FAL_KEY}` }
+                headers: { 'Authorization': `Key ${key}` }
               });
               result = await resultRes.json();
               break;
