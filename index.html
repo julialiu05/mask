@@ -816,7 +816,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
-  <script src="config.js"></script>
+  <script src="config.js" onerror="window.MASK_CONFIG={}"></script>
 
   <script>
     // ==================== i18n ====================
@@ -2449,10 +2449,14 @@ RULES:
         await video.play();
         const camera = new Camera(video, {
           onFrame: async () => {
-            await faceMesh.send({ image: video });
+            try {
+              await faceMesh.send({ image: video });
+            } catch (e) { console.warn('FaceMesh frame error:', e); }
             // Only run segmentation when in bg mode to save resources
             if (currentMask === 'bg') {
-              await selfieSegmentation.send({ image: video });
+              try {
+                await selfieSegmentation.send({ image: video });
+              } catch (e) { console.warn('Segmentation frame error:', e); }
             }
           },
           width: 640, height: 480
@@ -2461,7 +2465,9 @@ RULES:
         statusEl.textContent = t('statusCameraReady');
       } catch (err) {
         statusEl.textContent = t('statusCameraDenied');
-        console.error(err);
+        console.error('Camera init error:', err);
+        // Show more detail on the page for debugging
+        statusEl.textContent = `Error: ${err.name || ''} ${err.message || 'Camera failed'}`;
       }
     }
 
