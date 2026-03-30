@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Builder</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #fafafa;
+      color: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px 60px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .back-link {
+      font-size: 12px;
+      color: rgba(0,0,0,0.4);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: #1a1a1a; }
+
+    /* Language toggle */
+    .lang-toggle {
+      display: flex;
+      align-self: flex-start;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 20px;
+      overflow: hidden;
+      font-size: 11px;
+    }
+    .lang-btn {
+      padding: 5px 14px;
+      border: none;
+      background: none;
+      color: rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 11px;
+    }
+    .lang-btn:hover { color: rgba(0,0,0,0.7); }
+    .lang-btn.active { background: #1a1a1a; color: #fff; }
+
+    /* Type toggle */
+    .type-row {
+      display: flex;
+      gap: 8px;
+    }
+    .type-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      background: #fff;
+      color: rgba(0,0,0,0.4);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .type-btn:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.7); }
+    .type-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+    /* Sections */
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(0,0,0,0.35);
+      font-weight: 600;
+    }
+
+    /* Chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      padding: 6px 14px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 20px;
+      background: #fff;
+      color: rgba(0,0,0,0.5);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.8); }
+    .chip.selected { border-color: #1a1a1a; color: #1a1a1a; background: rgba(0,0,0,0.04); }
+
+    /* Custom input */
+    .custom-input {
+      width: 100%;
+      padding: 8px 14px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .custom-input:focus { border-color: rgba(0,0,0,0.3); }
+    .custom-input::placeholder { color: rgba(0,0,0,0.25); }
+
+    /* Divider */
+    .divider { height: 1px; background: rgba(0,0,0,0.07); }
+
+    /* Preview */
+    .preview-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      min-height: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .preview-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(0,0,0,0.3);
+      font-weight: 600;
+    }
+    .preview-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      word-break: break-word;
+    }
+    .preview-text.empty {
+      color: rgba(0,0,0,0.25);
+      font-style: italic;
+      font-size: 13px;
+    }
+    .preview-sub {
+      font-size: 11px;
+      color: rgba(0,0,0,0.3);
+      font-style: italic;
+      line-height: 1.5;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(0,0,0,0.08);
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    .copy-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .copy-btn:hover { background: #333; }
+    .copy-btn.copied { background: #22c55e; }
+    .clear-btn {
+      padding: 12px 20px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      background: #fff;
+      color: rgba(0,0,0,0.4);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .clear-btn:hover { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.7); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1 data-i18n="title">Prompt Builder</h1>
+      <a href="index.html" class="back-link" data-i18n="backToMask">&larr; Back to AR Masks</a>
+    </div>
+
+    <div class="lang-toggle">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+    </div>
+
+    <!-- Type -->
+    <div class="section">
+      <div class="section-label" data-i18n="type">Type</div>
+      <div class="type-row">
+        <button class="type-btn active" data-type="mask" data-i18n="t_mask">Mask</button>
+        <button class="type-btn" data-type="background" data-i18n="t_bg">Background</button>
+      </div>
+    </div>
+
+    <!-- Subject -->
+    <div class="section">
+      <div class="section-label" data-i18n="subject">Subject</div>
+      <div class="chips" data-field="subject">
+        <button class="chip" data-val="dragon">🐉 <span data-i18n="dragon">dragon</span></button>
+        <button class="chip" data-val="butterfly">🦋 <span data-i18n="butterfly">butterfly</span></button>
+        <button class="chip" data-val="skull">💀 <span data-i18n="skull">skull</span></button>
+        <button class="chip" data-val="flowers">🌸 <span data-i18n="flowers">flowers</span></button>
+        <button class="chip" data-val="phoenix">🔥 <span data-i18n="phoenix">phoenix</span></button>
+        <button class="chip" data-val="cat">🐱 <span data-i18n="cat">cat</span></button>
+        <button class="chip" data-val="galaxy">🌌 <span data-i18n="galaxy">galaxy</span></button>
+        <button class="chip" data-val="koi">🐟 <span data-i18n="koi">koi fish</span></button>
+        <button class="chip" data-val="mask">🎭 <span data-i18n="operaMask">opera mask</span></button>
+        <button class="chip" data-val="robot">🤖 <span data-i18n="robot">robot</span></button>
+      </div>
+      <input class="custom-input" data-field="subject" data-i18n-ph="subjectPh" placeholder="or type your own subject...">
+    </div>
+
+    <!-- Material -->
+    <div class="section">
+      <div class="section-label" data-i18n="material">Material / Texture</div>
+      <div class="chips" data-field="material">
+        <button class="chip" data-val="porcelain">🏺 <span data-i18n="porcelain">porcelain</span></button>
+        <button class="chip" data-val="gold leaf">✨ <span data-i18n="goldLeaf">gold leaf</span></button>
+        <button class="chip" data-val="crystal">💎 <span data-i18n="crystal">crystal</span></button>
+        <button class="chip" data-val="wood carved">🪵 <span data-i18n="wood">wood carved</span></button>
+        <button class="chip" data-val="liquid metal">🪩 <span data-i18n="metal">liquid metal</span></button>
+        <button class="chip" data-val="watercolor">🎨 <span data-i18n="watercolor">watercolor</span></button>
+        <button class="chip" data-val="stained glass">🪟 <span data-i18n="glass">stained glass</span></button>
+        <button class="chip" data-val="ice frost">❄️ <span data-i18n="ice">ice / frost</span></button>
+      </div>
+    </div>
+
+    <!-- Colors -->
+    <div class="section">
+      <div class="section-label" data-i18n="colors">Colors</div>
+      <div class="chips" data-field="colors">
+        <button class="chip" data-val="red and gold">🔴 <span data-i18n="redGold">red & gold</span></button>
+        <button class="chip" data-val="black and white">⚫ <span data-i18n="bw">black & white</span></button>
+        <button class="chip" data-val="pastel rainbow">🌈 <span data-i18n="pastel">pastel rainbow</span></button>
+        <button class="chip" data-val="neon cyan and pink">💜 <span data-i18n="neon">neon cyan & pink</span></button>
+        <button class="chip" data-val="emerald and jade">💚 <span data-i18n="jade">emerald & jade</span></button>
+        <button class="chip" data-val="sunset orange">🟠 <span data-i18n="sunset">sunset orange</span></button>
+        <button class="chip" data-val="iridescent holographic">🫧 <span data-i18n="holo">holographic</span></button>
+      </div>
+    </div>
+
+    <!-- Mood -->
+    <div class="section">
+      <div class="section-label" data-i18n="mood">Mood / Vibe</div>
+      <div class="chips" data-field="mood">
+        <button class="chip" data-val="elegant and regal">👑 <span data-i18n="elegant">elegant</span></button>
+        <button class="chip" data-val="dark and mysterious">🌑 <span data-i18n="dark">dark</span></button>
+        <button class="chip" data-val="cute and playful">🧸 <span data-i18n="cute">cute</span></button>
+        <button class="chip" data-val="futuristic and techy">🚀 <span data-i18n="futuristic">futuristic</span></button>
+        <button class="chip" data-val="ethereal and dreamy">🌙 <span data-i18n="dreamy">dreamy</span></button>
+        <button class="chip" data-val="fierce and powerful">⚡ <span data-i18n="fierce">fierce</span></button>
+        <button class="chip" data-val="serene and peaceful">🕊️ <span data-i18n="serene">serene</span></button>
+      </div>
+    </div>
+
+    <!-- Lighting -->
+    <div class="section">
+      <div class="section-label" data-i18n="lighting">Lighting</div>
+      <div class="chips" data-field="lighting">
+        <button class="chip" data-val="golden hour sunlight">🌅 <span data-i18n="goldenHour">golden hour</span></button>
+        <button class="chip" data-val="neon glow">💡 <span data-i18n="neonGlow">neon glow</span></button>
+        <button class="chip" data-val="soft diffused light">☁️ <span data-i18n="softLight">soft diffused</span></button>
+        <button class="chip" data-val="dramatic rim lighting">🔦 <span data-i18n="rimLight">rim light</span></button>
+        <button class="chip" data-val="moonlit, blue ambient">🌙 <span data-i18n="moonlit">moonlit</span></button>
+        <button class="chip" data-val="volumetric god rays">✨ <span data-i18n="godRays">god rays</span></button>
+        <button class="chip" data-val="chiaroscuro, high contrast shadows">🎭 <span data-i18n="chiaroscuro">chiaroscuro</span></button>
+        <button class="chip" data-val="bioluminescent glow">🪼 <span data-i18n="biolum">bioluminescent</span></button>
+      </div>
+    </div>
+
+    <!-- Composition -->
+    <div class="section">
+      <div class="section-label" data-i18n="composition">Composition</div>
+      <div class="chips" data-field="composition">
+        <button class="chip" data-val="extreme close-up macro">🔍 <span data-i18n="closeup">close-up</span></button>
+        <button class="chip" data-val="symmetrical centered">⚖️ <span data-i18n="symmetrical">symmetrical</span></button>
+        <button class="chip" data-val="85mm portrait lens, shallow depth of field">📷 <span data-i18n="portrait">portrait lens</span></button>
+        <button class="chip" data-val="wide angle panoramic">🌐 <span data-i18n="wideAngle">wide angle</span></button>
+        <button class="chip" data-val="birds-eye view from above">🦅 <span data-i18n="birdsEye">bird's eye</span></button>
+        <button class="chip" data-val="tilt-shift miniature effect">🏠 <span data-i18n="tiltShift">tilt-shift</span></button>
+        <button class="chip" data-val="cinematic widescreen, film grain">🎬 <span data-i18n="cinematic">cinematic</span></button>
+      </div>
+    </div>
+
+    <!-- Extra -->
+    <div class="section">
+      <div class="section-label" data-i18n="extra">Extra Detail</div>
+      <input class="custom-input" data-field="extra" data-i18n-ph="extraPh" placeholder="glowing edges, dripping paint, tiny stars...">
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Preview -->
+    <div class="preview-box">
+      <div class="preview-label" data-i18n="preview">Preview</div>
+      <div class="preview-text empty" id="previewText">Select options above to build a prompt...</div>
+      <div class="preview-sub" id="previewSub" style="display:none;"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="copy-btn" id="copyBtn" data-i18n="copyPrompt">Copy prompt to clipboard</button>
+      <button class="clear-btn" id="clearBtn" data-i18n="clear">Clear</button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== i18n ====================
+    let currentLang = 'en';
+    let generationType = 'mask';
+
+    const i18n = {
+      en: {
+        title: 'Prompt Builder', backToMask: '\u2190 Back to AR Masks',
+        type: 'Type', t_mask: 'Mask', t_bg: 'Background',
+        subject: 'Subject', dragon: 'dragon', butterfly: 'butterfly', skull: 'skull',
+        flowers: 'flowers', phoenix: 'phoenix', cat: 'cat', galaxy: 'galaxy',
+        koi: 'koi fish', operaMask: 'opera mask', robot: 'robot',
+        subjectPh: 'or type your own subject...',
+        material: 'Material / Texture',
+        porcelain: 'porcelain', goldLeaf: 'gold leaf', crystal: 'crystal',
+        wood: 'wood carved', metal: 'liquid metal', watercolor: 'watercolor',
+        glass: 'stained glass', ice: 'ice / frost',
+        colors: 'Colors',
+        redGold: 'red & gold', bw: 'black & white', pastel: 'pastel rainbow',
+        neon: 'neon cyan & pink', jade: 'emerald & jade', sunset: 'sunset orange',
+        holo: 'holographic',
+        mood: 'Mood / Vibe',
+        elegant: 'elegant', dark: 'dark', cute: 'cute', futuristic: 'futuristic',
+        dreamy: 'dreamy', fierce: 'fierce', serene: 'serene',
+        lighting: 'Lighting',
+        goldenHour: 'golden hour', neonGlow: 'neon glow', softLight: 'soft diffused',
+        rimLight: 'rim light', moonlit: 'moonlit', godRays: 'god rays',
+        chiaroscuro: 'chiaroscuro', biolum: 'bioluminescent',
+        composition: 'Composition',
+        closeup: 'close-up', symmetrical: 'symmetrical', portrait: 'portrait lens',
+        wideAngle: 'wide angle', birdsEye: "bird's eye", tiltShift: 'tilt-shift',
+        cinematic: 'cinematic',
+        extra: 'Extra Detail',
+        extraPh: 'glowing edges, dripping paint, tiny stars...',
+        preview: 'Preview',
+        emptyPreview: 'Select options above to build a prompt...',
+        copyPrompt: 'Copy prompt to clipboard',
+        copied: 'Copied!',
+        clear: 'Clear',
+      },
+      zh: {
+        title: '提示词构建器', backToMask: '\u2190 返回 AR 面具',
+        type: '类型', t_mask: '面具', t_bg: '背景',
+        subject: '主题', dragon: '龙', butterfly: '蝴蝶', skull: '骷髅',
+        flowers: '花卉', phoenix: '凤凰', cat: '猫', galaxy: '银河',
+        koi: '锦鲤', operaMask: '脸谱', robot: '机器人',
+        subjectPh: '或输入自定义主题...',
+        material: '材质 / 纹理',
+        porcelain: '陶瓷', goldLeaf: '金箔', crystal: '水晶',
+        wood: '木雕', metal: '液态金属', watercolor: '水彩',
+        glass: '彩色玻璃', ice: '冰霜',
+        colors: '配色',
+        redGold: '红金', bw: '黑白', pastel: '粉彩虹',
+        neon: '霓虹青粉', jade: '翡翠玉绿', sunset: '日落橙',
+        holo: '全息彩虹',
+        mood: '氛围 / 风格',
+        elegant: '优雅', dark: '暗黑', cute: '可爱', futuristic: '未来感',
+        dreamy: '梦幻', fierce: '霸气', serene: '宁静',
+        lighting: '光照',
+        goldenHour: '黄金时刻', neonGlow: '霓虹光', softLight: '柔和漫射',
+        rimLight: '轮廓光', moonlit: '月光', godRays: '丁达尔光',
+        chiaroscuro: '明暗对比', biolum: '生物发光',
+        composition: '构图',
+        closeup: '特写', symmetrical: '对称', portrait: '人像镜头',
+        wideAngle: '广角', birdsEye: '鸟瞰', tiltShift: '移轴',
+        cinematic: '电影感',
+        extra: '额外细节',
+        extraPh: '发光边缘、滴落颜料、小星星...',
+        preview: '预览',
+        emptyPreview: '选择上方选项来构建提示词...',
+        copyPrompt: '复制提示词到剪贴板',
+        copied: '已复制!',
+        clear: '清除',
+      }
+    };
+
+    const zhChipLabels = {
+      dragon: '龙', butterfly: '蝴蝶', skull: '骷髅', flowers: '花卉',
+      phoenix: '凤凰', cat: '猫', galaxy: '银河', koi: '锦鲤',
+      mask: '脸谱', robot: '机器人',
+      porcelain: '陶瓷', 'gold leaf': '金箔', crystal: '水晶',
+      'wood carved': '木雕', 'liquid metal': '液态金属', watercolor: '水彩',
+      'stained glass': '彩色玻璃', 'ice frost': '冰霜',
+      'red and gold': '红金', 'black and white': '黑白', 'pastel rainbow': '粉彩虹',
+      'neon cyan and pink': '霓虹青粉', 'emerald and jade': '翡翠玉绿',
+      'sunset orange': '日落橙', 'iridescent holographic': '全息彩虹',
+      'elegant and regal': '优雅', 'dark and mysterious': '暗黑',
+      'cute and playful': '可爱', 'futuristic and techy': '未来感',
+      'ethereal and dreamy': '梦幻', 'fierce and powerful': '霸气',
+      'serene and peaceful': '宁静',
+      'golden hour sunlight': '黄金时刻', 'neon glow': '霓虹光',
+      'soft diffused light': '柔和漫射', 'dramatic rim lighting': '轮廓光',
+      'moonlit, blue ambient': '月光', 'volumetric god rays': '丁达尔光',
+      'chiaroscuro, high contrast shadows': '明暗对比', 'bioluminescent glow': '生物发光',
+      'extreme close-up macro': '特写', 'symmetrical centered': '对称',
+      '85mm portrait lens, shallow depth of field': '人像镜头',
+      'wide angle panoramic': '广角', 'birds-eye view from above': '鸟瞰',
+      'tilt-shift miniature effect': '移轴', 'cinematic widescreen, film grain': '电影感',
+    };
+
+    function t(key) { return (i18n[currentLang] || {})[key] || (i18n.en || {})[key] || key; }
+    function zhLabel(val) { return val.split(', ').map(v => zhChipLabels[v] || v).join('、'); }
+
+    function applyLanguage() {
+      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset['i18nPh']); });
+      updatePreview();
+    }
+
+    // ==================== STATE ====================
+    const state = { subject: '', material: '', colors: '', mood: '', lighting: '', composition: '', extra: '' };
+
+    // ==================== CHIPS ====================
+    document.querySelectorAll('.chips').forEach(group => {
+      const field = group.dataset.field;
+      group.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          if (field === 'subject') {
+            group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+            if (state[field] === chip.dataset.val) {
+              chip.classList.remove('selected');
+              state[field] = '';
+            } else {
+              chip.classList.add('selected');
+              state[field] = chip.dataset.val;
+            }
+            const customInput = document.querySelector(`input[data-field="${field}"]`);
+            if (customInput && state[field]) customInput.value = '';
+          } else {
+            chip.classList.toggle('selected');
+            const selected = [...group.querySelectorAll('.chip.selected')].map(c => c.dataset.val);
+            state[field] = selected.join(', ');
+          }
+          updatePreview();
+        });
+      });
+    });
+
+    // Custom inputs
+    document.querySelectorAll('.custom-input').forEach(input => {
+      const field = input.dataset.field;
+      input.addEventListener('input', () => {
+        if (field === 'subject' && input.value.trim()) {
+          const group = document.querySelector(`.chips[data-field="${field}"]`);
+          if (group) group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+          state[field] = input.value.trim();
+        } else if (field === 'extra') {
+          state[field] = input.value.trim();
+        }
+        updatePreview();
+      });
+    });
+
+    // ==================== TYPE TOGGLE ====================
+    document.querySelectorAll('.type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        generationType = btn.dataset.type;
+        updatePreview();
+      });
+    });
+
+    // ==================== LANGUAGE ====================
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLang = btn.dataset.lang;
+        applyLanguage();
+      });
+    });
+
+    // ==================== PREVIEW ====================
+    function buildChinesePrompt() {
+      const parts = [];
+      const isBg = generationType === 'background';
+      if (state.subject) parts.push(zhLabel(state.subject));
+      if (isBg && !state.subject) parts.push('风景');
+      if (state.material) parts.push(`${zhLabel(state.material)}材质`);
+      if (state.colors) parts.push(`${zhLabel(state.colors)}配色`);
+      if (state.mood) parts.push(`${zhLabel(state.mood)}氛围`);
+      if (state.lighting) parts.push(`${zhLabel(state.lighting)}光效`);
+      if (state.composition) parts.push(`${zhLabel(state.composition)}构图`);
+      if (state.extra) parts.push(state.extra);
+      return parts.join('，');
+    }
+
+    function buildDisplayPrompt() {
+      const zh = currentLang === 'zh';
+      const parts = [];
+      const isBg = generationType === 'background';
+      if (state.subject) parts.push(zh ? zhLabel(state.subject) : state.subject);
+      if (isBg && !state.subject) parts.push(zh ? '风景' : 'scene');
+      if (state.material) parts.push(zh ? `${zhLabel(state.material)}材质` : `made of ${state.material}`);
+      if (state.colors) parts.push(zh ? `${zhLabel(state.colors)}配色` : `in ${state.colors}`);
+      if (state.mood) parts.push(zh ? `${zhLabel(state.mood)}氛围` : `${state.mood} feeling`);
+      if (state.lighting) parts.push(zh ? `${zhLabel(state.lighting)}光效` : state.lighting);
+      if (state.composition) parts.push(zh ? `${zhLabel(state.composition)}构图` : state.composition);
+      if (state.extra) parts.push(state.extra);
+      return parts.join(zh ? '，' : ', ');
+    }
+
+    function updatePreview() {
+      const previewText = document.getElementById('previewText');
+      const previewSub = document.getElementById('previewSub');
+      const display = buildDisplayPrompt();
+      const chinese = buildChinesePrompt();
+
+      if (display) {
+        previewText.textContent = display;
+        previewText.classList.remove('empty');
+        if (currentLang !== 'zh' && chinese) {
+          previewSub.textContent = 'AI prompt: ' + chinese;
+          previewSub.style.display = '';
+        } else {
+          previewSub.style.display = 'none';
+        }
+      } else {
+        previewText.textContent = t('emptyPreview');
+        previewText.classList.add('empty');
+        previewSub.style.display = 'none';
+      }
+    }
+
+    // ==================== ACTIONS ====================
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const prompt = buildChinesePrompt();
+      if (!prompt) return;
+      navigator.clipboard.writeText(prompt).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = t('copied');
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = t('copyPrompt');
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      Object.keys(state).forEach(k => state[k] = '');
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.custom-input').forEach(i => i.value = '');
+      updatePreview();
+    });
+
+    updatePreview();
+  </script>
+</body>
+</html>
