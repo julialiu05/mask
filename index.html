@@ -2391,69 +2391,74 @@ RULES:
 
     // ==================== FACE MESH ====================
 
-    const faceMesh = new FaceMesh({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-    });
-
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    faceMesh.onResults((results) => {
-      ctx.clearRect(0, 0, 640, 480);
-      drawCtx.clearRect(0, 0, 640, 480);
-      // Clear bg canvas when not in bg mode
-      if (currentMask !== 'bg') {
-        const bgC = document.getElementById('bgCanvas');
-        bgC.getContext('2d').clearRect(0, 0, 640, 480);
-      }
-      animFrame++;
-
-      if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-        landmarks = results.multiFaceLandmarks[0];
-        drawMask(ctx);
-        renderStrokes(drawCtx);
-        const mode = drawMode ? 'drawing' : (currentMask === 'none' ? 'select a mask' : currentMask);
-        statusEl.textContent = t('statusTracking', mode);
-      } else {
-        landmarks = null;
-        statusEl.textContent = t('statusNoFace');
-      }
-    });
-
-    // ==================== SELFIE SEGMENTATION ====================
-
-    const selfieSegmentation = new SelfieSegmentation({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
-    });
-
-    selfieSegmentation.setOptions({
-      modelSelection: 1, // 1 = landscape model (more accurate)
-      selfieMode: true,
-    });
-
-    selfieSegmentation.onResults((results) => {
-      // Store the segmentation mask for use in drawBackground
-      if (results.segmentationMask) {
-        segMask = results.segmentationMask;
-      }
-    });
+    let faceMesh = null;
+    let selfieSegmentation = null;
 
     async function init() {
+      statusEl.textContent = 'Loading models...';
+
       try {
+        // Initialize FaceMesh
+        faceMesh = new FaceMesh({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+        faceMesh.onResults((results) => {
+          ctx.clearRect(0, 0, 640, 480);
+          drawCtx.clearRect(0, 0, 640, 480);
+          if (currentMask !== 'bg') {
+            const bgC = document.getElementById('bgCanvas');
+            bgC.getContext('2d').clearRect(0, 0, 640, 480);
+          }
+          animFrame++;
+          if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            landmarks = results.multiFaceLandmarks[0];
+            drawMask(ctx);
+            renderStrokes(drawCtx);
+            const mode = drawMode ? 'drawing' : (currentMask === 'none' ? 'select a mask' : currentMask);
+            statusEl.textContent = t('statusTracking', mode);
+          } else {
+            landmarks = null;
+            statusEl.textContent = t('statusNoFace');
+          }
+        });
+
+        // Initialize Selfie Segmentation
+        try {
+          selfieSegmentation = new SelfieSegmentation({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+          });
+          selfieSegmentation.setOptions({
+            modelSelection: 1,
+            selfieMode: true,
+          });
+          selfieSegmentation.onResults((results) => {
+            if (results.segmentationMask) {
+              segMask = results.segmentationMask;
+            }
+          });
+        } catch (segErr) {
+          console.warn('Selfie segmentation failed to load:', segErr);
+          selfieSegmentation = null;
+        }
+
+        // Start camera
+        statusEl.textContent = 'Starting camera...';
         const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
         video.srcObject = stream;
         await video.play();
+
         const camera = new Camera(video, {
           onFrame: async () => {
             try {
-              await faceMesh.send({ image: video });
+              if (faceMesh) await faceMesh.send({ image: video });
             } catch (e) { console.warn('FaceMesh frame error:', e); }
-            // Only run segmentation when in bg mode to save resources
-            if (currentMask === 'bg') {
+            if (currentMask === 'bg' && selfieSegmentation) {
               try {
                 await selfieSegmentation.send({ image: video });
               } catch (e) { console.warn('Segmentation frame error:', e); }
@@ -2464,9 +2469,7 @@ RULES:
         camera.start();
         statusEl.textContent = t('statusCameraReady');
       } catch (err) {
-        statusEl.textContent = t('statusCameraDenied');
-        console.error('Camera init error:', err);
-        // Show more detail on the page for debugging
+        console.error('Init error:', err);
         statusEl.textContent = `Error: ${err.name || ''} ${err.message || 'Camera failed'}`;
       }
     }
