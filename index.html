@@ -816,6 +816,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+  <script src="config.js"></script>
 
   <script>
     // ==================== i18n ====================
@@ -1319,12 +1320,10 @@
       if (val && val.trim()) { localStorage.setItem(`mask_key_${name}`, val.trim()); return val.trim(); }
       return null;
     }
-    const _AK = 'YOUR_ANTHROPIC_KEY';
-    const _FK = 'YOUR_FAL_KEY';
-    const _OK = 'YOUR_OPENAI_KEY';
-    function ANTHROPIC_KEY() { return getKey('Anthropic', _AK); }
-    function FAL_KEY() { return getKey('FAL', _FK); }
-    function OPENAI_KEY() { return getKey('OpenAI', _OK); }
+    const _cfg = typeof MASK_CONFIG !== 'undefined' ? MASK_CONFIG : {};
+    function ANTHROPIC_KEY() { return getKey('Anthropic', _cfg.ANTHROPIC_KEY); }
+    function FAL_KEY() { return getKey('FAL', _cfg.FAL_KEY); }
+    function OPENAI_KEY() { return getKey('OpenAI', _cfg.OPENAI_KEY); }
 
     let aiMaskImage = null;
     let aiGeneratedMasks = [];
